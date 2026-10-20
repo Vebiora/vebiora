@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <div class="agent-mark" data-state="idle" title="Agent status: idle">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/>
+          <circle cx="12" cy="12" r="3" fill="currentColor"/>
+        </svg>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item is-active" data-workspace="chat" title="Chat">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 5.5C4 4.67 4.67 4 5.5 4h13c.83 0 1.5.67 1.5 1.5v10c0 .83-.67 1.5-1.5 1.5H9l-4 3.5v-3.5H5.5C4.67 17 4 16.33 4 15.5v-10Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+        </svg>
+        <span class="nav-label">Chat</span>
+      </button>
+
+      <button class="nav-item" data-workspace="voice" title="Voice">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="9" y="3.5" width="6" height="11" rx="3" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M6 11.5v.5a6 6 0 0 0 12 0v-.5M12 18v2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        <span class="nav-label">Voice</span>
+      </button>
+
+      <button class="nav-item" data-workspace="analysis" title="Analysis">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 19V10M12 19V5M19 19v-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        <span class="nav-label">Analysis</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="sidebar-divider"></div>
+      <button class="nav-item" data-workspace="settings" title="Settings">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="2.8" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M19.4 13.5a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V19.5a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 13.5a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.56-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06A2 2 0 1 1 7.08 2.74l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1-1.55V1.5a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V7a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+        </svg>
+        <span class="nav-label">Settings</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+
+    <!-- ---------- CHAT WORKSPACE ---------- -->
+    <section class="workspace is-active" id="workspace-chat">
+      <header class="workspace-header">
+        <h1>Chat</h1>
+        <div class="status-pill">
+          <span class="status-dot" data-state="idle"></span>
+          <span class="status-text">Online</span>
+        </div>
+      </header>
+
+      <div class="chat-body" id="chatBody">
+        <div class="chat-empty" id="chatEmpty">
+          <p class="chat-empty-title">Good afternoon.</p>
+          <p class="chat-empty-sub">What are we working on?</p>
+        </div>
+
+        <div class="chat-thread" id="chatThread" hidden>
+          <div class="msg msg-user">
+            <div class="msg-bubble">Can you check if my password vault module has any weak entries?</div>
+          </div>
+          <div class="msg msg-agent">
+            <div class="msg-bubble">I scanned the vault. Three entries reuse the same base password with minor suffixes. Want me to flag them for rotation?</div>
+          </div>
+          <div class="msg msg-user">
+            <div class="msg-bubble">Yes, flag them and remind me tomorrow.</div>
+          </div>
+        </div>
+
+        <div class="thinking-row" id="thinkingRow" hidden>
+          <div class="thinking-pill">
+            <span class="thinking-dot"></span>
+            <span class="thinking-dot"></span>
+            <span class="thinking-dot"></span>
+            <span class="thinking-label">Thinking…</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="composer">
+        <button class="composer-btn" id="attachBtn" title="Attach">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 12.5V8a4 4 0 1 1 8 0v7a2.5 2.5 0 1 1-5 0V9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <textarea class="composer-input" id="composerInput" rows="1" placeholder="Message your agent…"></textarea>
+        <button class="composer-send" id="sendBtn" title="Send">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- ---------- VOICE WORKSPACE ---------- -->
+    <section class="workspace" id="workspace-voice">
+      <header class="workspace-header">
+        <h1>Voice</h1>
+      </header>
+
+      <div class="voice-stage">
+        <div class="orb" id="orb" data-state="ready">
+          <div class="orb-core"></div>
+          <div class="orb-ring"></div>
+        </div>
+        <p class="voice-status" id="voiceStatus">Ready</p>
+
+        <button class="mic-btn" id="micBtn" title="Toggle listening">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M6 11v.5a6 6 0 0 0 12 0V11M12 17.5v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- ---------- ANALYSIS WORKSPACE ---------- -->
+    <section class="workspace" id="workspace-analysis">
+      <header class="workspace-header">
+        <div>
+          <h1>Analysis</h1>
+          <p class="workspace-sub">Tell your agent what to keep an eye on. It watches, and surfaces what matters.</p>
+        </div>
+        <button class="btn-primary" id="addTrackerBtn">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          Add something to track
+        </button>
+      </header>
+
+      <div class="analysis-body">
+        <div class="tracker-grid" id="trackerGrid">
+          <div class="tracker-card">
+            <div class="tracker-card-top">
+              <span class="tracker-title">My business</span>
+              <span class="tracker-status" data-state="working">
+                <span class="tracker-status-dot"></span>
+                Watching
+              </span>
+            </div>
+            <p class="tracker-desc">Track revenue, customers and expenses.</p>
+            <span class="tracker-meta">Checked 2 hours ago</span>
+          </div>
+
+          <div class="tracker-card">
+            <div class="tracker-card-top">
+              <span class="tracker-title">My project</span>
+              <span class="tracker-status" data-state="working">
+                <span class="tracker-status-dot"></span>
+                Watching
+              </span>
+            </div>
+            <p class="tracker-desc">Track project activity, issues and progress.</p>
+            <span class="tracker-meta">Checked 40 minutes ago</span>
+          </div>
+        </div>
+
+        <div class="insights-section">
+          <h2>Recent insights</h2>
+          <div class="insight-row">
+            <span class="insight-dot" data-state="completed"></span>
+            <div class="insight-copy">
+              <p class="insight-title">Expenses trending up 12% this week</p>
+              <p class="insight-meta">My business · 2h ago</p>
+            </div>
+          </div>
+          <div class="insight-row">
+            <span class="insight-dot" data-state="attention"></span>
+            <div class="insight-copy">
+              <p class="insight-title">3 open issues untouched for 5+ days</p>
+              <p class="insight-meta">My project · 40m ago</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- SETTINGS (minimal placeholder) ---------- -->
+    <section class="workspace" id="workspace-settings">
+      <header class="workspace-header">
+        <h1>Settings</h1>
+      </header>
+      <div class="settings-body">
+        <p class="settings-placeholder">Settings for this agent live here.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============ AGENT STATUS RAIL (subtle) ============ -->
+  <aside class="status-rail">
+    <div class="status-rail-item">
+      <span class="status-rail-dot" data-state="idle"></span>
+      <div class="status-rail-copy">
+        <span class="status-rail-label">Agent</span>
+        <span class="status-rail-value" id="agentStateLabel">Idle</span>
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+<!-- ============ ADD TRACKER MODAL ============ -->
+<div class="modal-overlay" id="modalOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-header">
+      <h2 id="modalTitle">Add something to track</h2>
+      <button class="modal-close" id="modalClose" title="Close">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <label class="field">
+        <span class="field-label">Name</span>
+        <input type="text" class="field-input" id="trackerName" placeholder="e.g. My business" />
+      </label>
+
+      <label class="field">
+        <span class="field-label">What should the agent monitor?</span>
+        <textarea class="field-input field-textarea" id="trackerWhat" rows="3" placeholder="Describe what to watch and what matters…"></textarea>
+      </label>
+
+      <label class="field">
+        <span class="field-label">How often?</span>
+        <select class="field-input" id="trackerFrequency">
+          <option>Every hour</option>
+          <option selected>Every day</option>
+          <option>Every week</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" id="modalCancel">Cancel</button>
+      <button class="btn-primary" id="modalCreate">Create</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/script.js"></script>
+</body>
+</html>
