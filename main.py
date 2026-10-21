@@ -83,13 +83,17 @@ def build_commands(command_text: str) -> bool: ## so if False then it will count
 def main() -> None:
      while True:
         try:
-               
+
+            if build_path()['agent']['provider'] == "none":
+                 logger.warning("The provider is none, we automatically started 'change_api'.")
+                 brain.Change_api()
+
             user_input = str(session.prompt("\nYou: ")).lower().strip() ## gets user input
             if not user_input:
                  continue
 
             if user_input == "test":
-                brain.test()
+                brain.Change_api()
                 continue
 
             if build_commands(user_input):

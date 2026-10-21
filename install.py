@@ -7,23 +7,7 @@ VERSION = "Alpha 0.1.0"
 default_path = Path(__file__).resolve().parent.parent
 
 
-def ask_provider():
-    providers = {
-    "1": "openai",
-    "2": "anthropic",
-    "3": "google",
-    "4": "ollama",
-    "": "none"
-    }
-    
-    while True:
-            choice = input("> ").strip()
-    
-            if choice in providers:
-                return providers[choice]
-            print("Invalid take.")
-
-def create_settings(config_dir, api_provider, model_path, data_path, memory_path, llama_, runtime_path=None):
+def create_settings(config_dir, model_path, data_path, memory_path, llama_, runtime_path=None):
 
     settings = {
         "app": {
@@ -76,7 +60,7 @@ def create_settings(config_dir, api_provider, model_path, data_path, memory_path
         ],
 
         "agent": {
-            "provider": api_provider
+            "provider": "none"
         },
 
 
@@ -177,22 +161,12 @@ def main():
     print(" "*20, "Vebiora AI Installer. by Mr-LoCOCO")
     print("=" * 60, "\n")
     print("Pick API provider (can be changed later) [enter to skip]:\n1. OpenAI\n2. Anthropic\n3. Google\n4. Ollama - (self-hosted)\n")
-    api_provider = ask_provider()
-    print("-" * 40)
-    if api_provider == "ollama":
-        llama_ = ask_("Do you wish to install llama.cpp [default='No']\n(!!You need llama.cpp if you chose ollama as the provider!!)", kind="yes_no")
     print("-" * 40)
     app_path = ask_("Where shall we install our folders", kind="path", custom_def=default_path / APP_NAME)
     model_path = ask_("Where should we put the models", kind="path", custom_def=app_path /  "models")
     data_path = ask_("Where should we store the data", kind="path", custom_def=app_path / "data")
     memory_path = ask_("Where should we store the memory", kind="path", custom_def=data_path / "memories")
     config_path = ask_("Where should we store the settings", kind="path", custom_def=data_path / "conf")
-
-    if api_provider == "ollama":
-        if llama_:
-            runtime_path = ask_("Where should we put the runtime", kind="path", custom_def=app_path / "runtime")
-        else:
-            runtime_path = ask_("Where should we look for the runtime", kind="path")
 
     print("=" * 60)
     for path in (app_path, model_path, data_path, memory_path, config_path):
@@ -203,8 +177,8 @@ def main():
             runtime_path.mkdir(parents=True, exist_ok=True)
             print(f"Created: {runtime_path}")
     print("=" * 60)
-    create_config_api(config_path, api_provider)
-    create_settings(config_dir=config_path, api_provider=api_provider, model_path=model_path, data_path=data_path, memory_path=memory_path, llama_=llama_, runtime_path=runtime_path)
+    create_config_api(config_path)
+    create_settings(config_dir=config_path, model_path=model_path, data_path=data_path, memory_path=memory_path, llama_=llama_, runtime_path=runtime_path)
     print(f"Created: {config_path / 'Settings.json'}")
     print(f"Created: {config_path / 'API.conf'}")
     

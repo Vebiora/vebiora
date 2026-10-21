@@ -43,11 +43,11 @@ class Brain:
     def __init__(self, short_memory):
         self.short_memory = short_memory
         self.mode = "default" ## Sets the default mode
-        self.url = None ## gets url
+        self.url = "none" ## gets url
         self.model = "Qwen3-30B-A3B-Q4_K_M.gguf" ## Gets model ## !! change this later !!
 
-    ## change the api by checking if api is available in API.conf.
-    def test(self):
+    ## change the api by checking if api is available in API.json.
+    def Change_api(self):
         available_apis = [provider for provider, api in apis_data['providers'].items() if isinstance(api, str) and api.strip() and api.strip() not in ("YourKeyHere")]
 
         print("\n[Mode:api]" + "-" * 45)
@@ -60,7 +60,7 @@ class Brain:
         selected_provider = input("Select provider: ").strip()
         print("-" * 55) 
         
-        self.url = apis_data['providers'][selected_provider]
+        
 
         if selected_provider not in available_apis:
             logger.error("Provider not found.")
@@ -68,7 +68,12 @@ class Brain:
 
         if selected_provider in available_apis:
             logger.debug(f"Changed api to {selected_provider}")
+            
+            self.url = apis_data['providers'][selected_provider]
 
+            setting_data['agent']['provider'] = selected_provider
+            with open(config_path / "settings.json", "w") as f:
+                json.dump(setting_data, f, indent=4)
 
     ## changes the mode of ask
     def change_modes(self,mode = "default"):
@@ -91,6 +96,21 @@ class Brain:
 
     
     def Ask(self,user_input):
+        if self.url == "none":
+            provider = setting_data["agent"]["provider"]
+
+            if provider == "none":
+                provider  = self.Change_api()
+                if not provider:
+                    logger.critical(f"No API provider selected. check 'API.json' at `{config_path}`.")
+                    raise RuntimeError("No API provider selected")
+
+                self.url = apis_data["providers"].get(provider)
+
+                if not self.url:
+                    raise RuntimeError(f"Invalid API endpoint for provider: {provider}")
+
+
         if Verbose_mode == False:
             print()
 
@@ -105,7 +125,7 @@ class Brain:
             for prompt in prompt_data[mode].values() )
 
         ## gets settings for the passed mode
-        settings = setting_data['Modes_settings'][mode]
+        settings = setting_data['agent']['Mode_settings'][mode]
 
         ## makes a animation for thinking
         stop_animation = threading.Event() ## this makes the animation to stop
