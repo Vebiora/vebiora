@@ -11,7 +11,7 @@ if __package__:
     from ..utils.animation import thinking_animation
     from ..utils.setups import setup_logging
 else:
-    # Support running this file directly, when Python has no package context.
+    ## Support running this file directly, when Python has no package context.
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
     from app.utils.animation import thinking_animation
     from app.utils.setups import setup_logging
@@ -43,7 +43,8 @@ class Brain:
     def __init__(self, short_memory):
         self.short_memory = short_memory
         self.mode = "default" ## Sets the default mode
-        self.url = "none" ## gets url
+        self.base_url = "http://Localhost:8000/v1/chat/completions" ## !! change this later !!
+        self.api_key = "none" ## gets api key
         self.model = "Qwen3-30B-A3B-Q4_K_M.gguf" ## Gets model ## !! change this later !!
 
     ## change the api by checking if api is available in API.json.
@@ -69,7 +70,7 @@ class Brain:
         if selected_provider in available_apis:
             logger.debug(f"Changed api to {selected_provider}")
             
-            self.url = apis_data['providers'][selected_provider]
+            self.api_key = apis_data['providers'][selected_provider]
 
             setting_data['agent']['provider'] = selected_provider
             with open(config_path / "settings.json", "w") as f:
@@ -94,9 +95,14 @@ class Brain:
         print("-" * 55)
         return mode
 
-    
+    ## converts raw data in json style
+    def convert_data(self, content):
+        content = content.decode('utf-8')
+        return json.loads(content.removeprefix("data: ").strip())
+
+    ## takes a request with specific settings and act like modes
     def Ask(self,user_input):
-        if self.url == "none":
+        if self.api_key == "none":
             provider = setting_data["agent"]["provider"]
 
             if provider == "none":
@@ -105,10 +111,10 @@ class Brain:
                     logger.critical(f"No API provider selected. check 'API.json' at `{config_path}`.")
                     raise RuntimeError("No API provider selected")
 
-                self.url = apis_data["providers"].get(provider)
+            self.api_key = apis_data["providers"].get(provider)
 
-                if not self.url:
-                    raise RuntimeError(f"Invalid API endpoint for provider: {provider}")
+            if not self.api_key:
+                raise RuntimeError(f"Invalid API endpoint for provider: {provider}")
 
 
         if Verbose_mode == False:
@@ -138,10 +144,10 @@ class Brain:
         try:
             ## makes a request with the settings of the selected mode, then returns the answer.
             response = requests.post(
-                self.url,
+                self.api_key,
                 
                 json={
-
+                    "stream": True,
                     "model": self.model,
                     "messages":[
                         {
@@ -160,22 +166,45 @@ class Brain:
                     "repeat_penalty": settings["repeat_penalty"],
                     "extra_body": {"chat_template_kwargs": {"enable_thinking": settings["thinking"]}},
                 },
+                stream=True,
                 timeout=(3, None) ## gets an error if in 3 seconds the server doesn't respond.
             )
 
+            sections = []
+            reasoning_sections = []
+
+            
             response.raise_for_status() ## gets the web status
-            data = response.json() ## passes the ai's json as data
+            for content in response.iter_lines():
+                if content == b'':
+                    continue
+                if content == b'data: [DONE]':
+                    break
 
-            self.short_memory.Add({"role": "assistant", "content": data["choices"][0]["message"]["content"]}) ## ads it's own content so the ai will remember what he said
+                if text := self.convert_data(content)['choices'][0]['delta'].get('content'):
+                    sections.append(text)
+                if reasoning := self.convert_data(content)['choices'][0]['delta'].get('reasoning_content'):
+                    reasoning_sections.append(reasoning)
 
-            return data
+
+            self.short_memory.Add({"role": "assistant", "content": "".join(sections)}) ## ads it's own content so the ai will remember what he said
+
+            return {
+                "answer": "".join(sections),
+                "selections": sections,
+                "reasoning_content": "".join(reasoning_sections),
+            }
+                
+            
+
+            
         
         except requests.exceptions.ConnectionError as e:
-            logger.error("Could not connect to AI endpoint (endpoint='%s'): %s", self.url, e)
+            logger.error("Could not connect to AI endpoint (endpoint='%s'): %s", self.api_key, e)
             raise RuntimeError("AI service is unavailable") from e
         
         except requests.exceptions.Timeout as e:
-            logger.error("AI endpoint timed out (endpoint='%s'): %s ", self.url, e)
+            logger.error("AI endpoint timed out (endpoint='%s'): %s ", self.api_key, e)
             sys.exit() 
 
         finally:

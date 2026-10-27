@@ -2,14 +2,14 @@
     "app": {
         "name": "Vebiora-ai",
         "version": "Alpha 0.1.0",
-        "models_path": "/home/lococo/Workspace/Vebiora-ai/models",
-        "data_path": "/home/lococo/Workspace/Vebiora-ai/data",
-        "memory_path": "/home/lococo/Workspace/Vebiora-ai/data/memories"
+        "models_path": "/mnt/c/AI/llama.cpp/models",
+        "data_path": "/home/lococo/Workspace/ai_agent/data",
+        "memory_path": "/home/lococo/Workspace/ai_agent/data/memories"
     },
     "runtime": {
         "available": true,
         "installed_by_vebiora": true,
-        "path": "/home/lococo/Workspace/Vebiora-ai/runtime"
+        "path": "/mnt/c/AI/llama.cpp"
     },
     "commands": [
         {
@@ -39,6 +39,10 @@
         {
             "name": "thinking",
             "description": "Turn on/off prompt reasoning."
+        },
+        {
+            "name": "api",
+            "description": "Change api provider."
         }
     ],
     "agent": {

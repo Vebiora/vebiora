@@ -40,7 +40,7 @@ class short_mem:
     def Save(self, name):
         memory = self.load()
 
-        save_path = setting_data["ai_settings"]["short_memory_path"] ## gets the file directory
+        save_path = setting_data["app"]["memory_path"] ## gets the file directory
         
         file_name = str(name).strip().replace(" ", "-") ## makes sure of no spaces
         
@@ -66,7 +66,7 @@ class short_mem:
 
     ## loads the list from a file
     def load_file   (self, name):
-        save_path = setting_data["ai_settings"]["short_memory_path"] ## gets the path of files
+        save_path = setting_data["app"]["memory_path"] ## gets the path of files
         file_name = str(name).strip().replace(" ", "-") ## makes sure there is no spaces
         full_path = os.path.join(save_path, f"{name}.json") ## makes the file name
 

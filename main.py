@@ -31,7 +31,6 @@ def build_path():
 
     except Exception as e:  ## noqa: BLE001
         logger.error(f"Something happen: {e}")
-
 ## commands
 def build_commands(command_text: str) -> bool: ## so if False then it will count as asking the ai else no. (good for plugging)
 
@@ -79,6 +78,10 @@ def build_commands(command_text: str) -> bool: ## so if False then it will count
          short_memory.load_file(name=file_name)
          return end_command
 
+    if cmd == "api":
+         brain.Change_api()
+         return end_command
+
 ## main
 def main() -> None:
      while True:
@@ -92,16 +95,12 @@ def main() -> None:
             if not user_input:
                  continue
 
-            if user_input == "test":
-                brain.Change_api()
-                continue
-
             if build_commands(user_input):
                  continue
 
             answer = brain.Ask(user_input=user_input)
-            
-            print(f"\033[94mVebiora:\033[0m {answer['choices'][0]['message']['content']}\n")
+
+            print(f"\033[94mVebiora:\033[0m {answer['answer']}\n")
 
         except KeyboardInterrupt:
              break    
@@ -125,6 +124,6 @@ if __name__ == "__main__":
     if args.prompt:
             brain = Brain(short_memory=short_mem())
             response = brain.Ask(args.prompt)
-            print(f"VebAI: {response['choices'][0]['message']['content']}")
+            print(f"VebAI: {response['answer']}")
     else:
          main()
