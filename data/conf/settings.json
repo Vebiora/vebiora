@@ -43,6 +43,10 @@
         {
             "name": "api",
             "description": "Change api provider."
+        },
+        {
+            "name": "show",
+            "description": "Shows details about the given subject."
         }
     ],
     "agent": {
@@ -89,6 +93,16 @@
                 "repeat_penalty": 1.12,
                 "thinking": true,
                 "effort": "high"
+            },
+            "capri": {
+                "temperature": 0.8,
+                "max_tokens": 5000,
+                "top_p": 0.8,
+                "top_k": 10,
+                "min_p": 0.01,
+                "repeat_penalty": 1.1,
+                "thinking": true,
+                "effort": "medium"
             }
         }
     }

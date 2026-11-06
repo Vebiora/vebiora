@@ -28,14 +28,24 @@ apis = {}
 ## load files
 with open(config_path / "settings.json", "r") as f:
     setting_data = json.load(f)
-with open(config_path / "prompts.json", "r") as f:
-    prompts = json.load(f)
+with open(config_path / "prompt" / "system.md", "r") as f:
+    system_prompt = f.read()
 with open(config_path / "API.json", "r") as f:
     apis_data = json.load(f)
 
+## checks if provider settings are available
+def _is_provider_available(config):
+    if not isinstance(config, dict):
+        return False
 
-## build prompt
-prompt_data = prompts["prompt"]
+    if not config.get("base_url") or not config.get("model"):
+        return False
+
+    if not config.get("api_key_required", True):
+        return True
+
+    api_key = config.get("api_key")
+    return isinstance(api_key, str) and bool(api_key.strip()) and api_key.strip() != "YourKeyHere"
 
 
 ## brain class
@@ -43,20 +53,34 @@ class Brain:
     def __init__(self, short_memory):
         self.short_memory = short_memory
         self.mode = "default" ## Sets the default mode
-        self.base_url = "http://Localhost:8000/v1/chat/completions" ## !! change this later !!
-        self.api_key = "none" ## gets api key
-        self.model = "Qwen3-30B-A3B-Q4_K_M.gguf" ## Gets model ## !! change this later !!
+        self.base_url = None 
+        self.api_key = None ## gets api key
+        self.model = None ## Gets model
+
+    ## sets and gets the provider's settings
+    def _set_provider(self, provider):
+        config = apis_data['providers'][provider]
+
+        self.base_url = config['base_url']
+        self.model = config['model']
+        self.api_key = config['api_key']
+
+        setting_data['agent']['provider'] = provider
 
     ## change the api by checking if api is available in API.json.
     def Change_api(self):
-        available_apis = [provider for provider, api in apis_data['providers'].items() if isinstance(api, str) and api.strip() and api.strip() not in ("YourKeyHere")]
+        available_apis = [
+            provider
+            for provider, config in apis_data["providers"].items()
+            if _is_provider_available(config)
+        ]
 
         print("\n[Mode:api]" + "-" * 45)
         print("Available:", available_apis)
 
         if not available_apis:
-            logger.error(f"No providers are configured. Check {config_path / 'settings.json'}.")
-            return "None"
+            logger.error(f"No providers are configured. Check {config_path / 'API.json'}.")
+            return None
         
         selected_provider = input("Select provider: ").strip()
         print("-" * 55) 
@@ -64,17 +88,17 @@ class Brain:
         
 
         if selected_provider not in available_apis:
-            logger.error("Provider not found.")
+            logger.error("Provider not found or API key missing.")
             return None
 
-        if selected_provider in available_apis:
-            logger.debug(f"Changed api to {selected_provider}")
-            
-            self.api_key = apis_data['providers'][selected_provider]
+        self._set_provider(selected_provider)
 
-            setting_data['agent']['provider'] = selected_provider
-            with open(config_path / "settings.json", "w") as f:
-                json.dump(setting_data, f, indent=4)
+        with open(config_path / 'settings.json', "w", encoding='utf-8') as f:
+            json.dump(setting_data, f, indent=4)
+
+        logger.debug("Changed API provider to %s", selected_provider)
+        return selected_provider
+        
 
     ## changes the mode of ask
     def change_modes(self,mode = "default"):
@@ -101,20 +125,28 @@ class Brain:
         return json.loads(content.removeprefix("data: ").strip())
 
     ## takes a request with specific settings and act like modes
-    def Ask(self,user_input):
-        if self.api_key == "none":
-            provider = setting_data["agent"]["provider"]
+    def Ask(self, user_input, on_chunk=None):
+        if not self.base_url:
+            provider = setting_data['agent'].get("provider", "none")
 
-            if provider == "none":
-                provider  = self.Change_api()
+            if provider not in apis_data['providers']:
+                provider = self.Change_api()
+
                 if not provider:
-                    logger.critical(f"No API provider selected. check 'API.json' at `{config_path}`.")
-                    raise RuntimeError("No API provider selected")
+                    raise RuntimeError("No API provider selected.")
 
-            self.api_key = apis_data["providers"].get(provider)
+            else:
+                self._set_provider(provider)
 
-            if not self.api_key:
-                raise RuntimeError(f"Invalid API endpoint for provider: {provider}")
+        if (
+            apis_data["providers"][setting_data["agent"]["provider"]].get("api_key_required", True)
+            and (
+                not isinstance(self.api_key, str)
+                or not self.api_key.strip()
+                or self.api_key.strip() == "YourKeyHere"
+            )
+        ):
+            raise RuntimeError("A  valid API key is required.")
 
 
         if Verbose_mode == False:
@@ -124,11 +156,6 @@ class Brain:
         logger.debug(f"Brain called a request with mode={self.mode}")
         
         mode = self.mode ## we get the passed mode
-
-        ## gets the prompt for the selected mode
-        system_prompt = "\n".join(
-            "\n".join(prompt)
-            for prompt in prompt_data[mode].values() )
 
         ## gets settings for the passed mode
         settings = setting_data['agent']['Mode_settings'][mode]
@@ -144,7 +171,13 @@ class Brain:
         try:
             ## makes a request with the settings of the selected mode, then returns the answer.
             response = requests.post(
-                self.api_key,
+                self.base_url,
+                headers={
+                    **({"Authorization": f"Bearer {self.api_key}"}
+                       if self.api_key
+                       else {}
+                       )
+                },
                 
                 json={
                     "stream": True,
@@ -174,15 +207,21 @@ class Brain:
             reasoning_sections = []
 
             
-            response.raise_for_status() ## gets the web status
+            #response.raise_for_status() ## gets the web status
             for content in response.iter_lines():
                 if content == b'':
                     continue
                 if content == b'data: [DONE]':
                     break
-
+                
+                # print(self.convert_data(content)) ## this is for debugging
                 if text := self.convert_data(content)['choices'][0]['delta'].get('content'):
                     sections.append(text)
+
+                    if on_chunk:
+                        on_chunk(text)
+                    else:
+                        print(text, end="", flush="true")
                 if reasoning := self.convert_data(content)['choices'][0]['delta'].get('reasoning_content'):
                     reasoning_sections.append(reasoning)
 

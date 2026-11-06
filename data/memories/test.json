@@ -1,10 +1,14 @@
 [
   {
     "role": "user",
-    "content": "hello. how are you"
+    "content": "hi"
+  },
+  {
+    "role": "user",
+    "content": "hi?"
   },
   {
     "role": "assistant",
-    "content": "Hello! I'm Vebiora AI, your assistant for secure system management, software configuration, and privacy-focused tasks. I prioritize stable, trustworthy solutions with minimal complexity. What would you like to accomplish?"
+    "content": "Hello! I'm Vebiora AI, your security-focused assistant designed to help with digital security tool discovery, installation, and configuration. How can I assist you today? Please note that I prioritize security, privacy, and transparency in all operations."
   }
 ]
