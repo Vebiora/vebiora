@@ -10,4 +10,4 @@ build/
 .idea
 tests/
 __pycache__/
-__init__.py
+__init__.pydata/conf/API.json
