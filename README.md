@@ -27,3 +27,10 @@ Chose Your Instllataion method:
 - [Manual]
 - [install.py]
 - [zip]
+
+### Manual installation:
+1. Install both 'manual-install.py' and 'manual-requirements.txt' from the latest release.
+![proof](Photos/image.png)
+2. make a .venv (recommended) using `python3 -m venv .venv` and activate it `source .venv/bin/activate`
+3. Follow our Gif.
+![Manual installation tutorial](Photos/manual_tutorial.gif)
