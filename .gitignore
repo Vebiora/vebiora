@@ -1,14 +1,37 @@
+# Dependencies
 node_modules/
+
+# Build outputs
 dist/
 build/
+out/
 
+# Environment variables and secrets
 .env
-.env.local
-.venv
-.log
-.vscode/
-.idea
-tests/
+.env.*
+!.env.example
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Python cache
 __pycache__/
-__init__.pydata/conf/API.json
+*.py[cod]
+*$py.class
+
+# Logs
+*.log
+logs/
+
+# IDEs and editors
+.vscode/
+.idea/
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Sensitive configuration
 data/conf/API.json
