@@ -1,9 +1,14 @@
 import json
+import urllib.request
+import zipfile
 import os
+import sys
 from pathlib import Path
 
 APP_NAME = "Vebiora-ai"
-VERSION = "Alpha 0.1.0"
+VERSION = "v0.1.0-Beta"
+URL = f"https://github.com/Vebiora/vebiora/releases/download/{VERSION}/app.zip"
+ZIP_FILE = "app.zip"
 default_path = Path(__file__).resolve().parent.parent
 
 
@@ -238,9 +243,23 @@ Vebiora supports both general-purpose conversations and cybersecurity-related ta
  - Recommend backups or recovery points before significant system modifications.
  - Never hide security-relevant information from the user."""
 
-def Create_file(location, name, content):
-    with open(location / name, 'w', encoding='utf-8') as file:
-        file.write(content)
+def get_app(app_dir):
+    print("Downloading: App files..")
+
+    urllib.request.urlretrieve(URL, ZIP_FILE)
+    print("Donwloading: DONE! [ok]")
+    print("Extracting: files..")
+    with zipfile.ZipFile(ZIP_FILE, "r") as zip_ref:
+        zip_ref.extractall(app_dir)
+    print("Extracting: DONE! [ok]")
+    os.remove(ZIP_FILE)
+
+def Create_file(location, name,content):
+    try:
+        with open(location / name, "w", encoding='utf-8') as file:
+            file.write(content)
+    except FileExistsError:
+        print("\033[91mError: file already exists.\033[0m")
  
 def Create_folder(location, name):
     os.mkdir(location / name)
@@ -320,6 +339,13 @@ def main():
     print(f"Created: {config_path /'prompt'/ 'system.md'}")
     print(f"Created: {config_path / 'Settings.json'}")
     print(f"Created: {config_path / 'API.conf'}")
+    get_app(app_dir=app_path)
     
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) == 1:
+        main()
+    
+    elif sys.argv[1] == "version":
+        print("Version: ", VERSION)
+    else:
+        print("\033[91mError: Install.py [version].\033[0m")

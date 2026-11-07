@@ -25,6 +25,11 @@ __pycache__/
 *.log
 logs/
 
+#folders
+tests/
+data/
+
+
 # IDEs and editors
 .vscode/
 .idea/
@@ -32,6 +37,7 @@ logs/
 # OS-generated files
 .DS_Store
 Thumbs.db
+__init__*
 
 # Sensitive configuration
 data/conf/API.json
