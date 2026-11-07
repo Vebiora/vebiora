@@ -11,3 +11,4 @@ build/
 tests/
 __pycache__/
 __init__.pydata/conf/API.json
+data/conf/API.json
