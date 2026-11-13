@@ -1,37 +1,61 @@
 ![Banner](Banner.png)
 
-# Vebiora-ai: An AI-agent.
+# Vebiora AI – An AI Agent
 
-[![Twitter](https://img.shields.io/badge/Follow%20on%20Twitter-1da1f2)](https://x.com/vebiora_)
+[![Twitter](https://img.shields.io/badge/Twitter-1da1f2)](https://x.com/vebiora_)
 [![TikTok](https://img.shields.io/badge/TikTok-000000?style=flat&logo=tiktok&logoColor=white)](https://www.tiktok.com/@vebiora_)
 
-Vebiora is a software that turns an AI intro an agent (using API) with powerfull tools.
+Vebiora is software that transforms an AI model into an AI agent using an API and a collection of powerful tools.
 
 **!! Tools are still under development !!**
 
 ## Table of Contents
 
 - [Features](#features)
-- [Installation Instructions](#Installation-Instructions)
-- [Uninstallation Instruction](#Uninstallation-Instructions)
+- [Installation Instructions](#installation-instructions)
+  - [Manual Installation](#manual-installation)
+  - [ZIP Installation](#zip-installation)
+- [Uninstallation Instructions](#uninstallation-instructions)
 - [FAQ](#faq)
 
 ## Features
 
-- API changer seemlessy.
+- Seamless API switching.
 - Highly customizable.
-- One File Settings.
+- Single-file configuration.
 
-##  Installation Instructions
-Chose Your Instllataion method:
-- [Manual]
-- [install.py]
-- [zip]
+## Installation Instructions
 
-### Manual installation:
-1. Install both 'manual-install.py' and 'manual-requirements.txt' from the latest release.
-![proof](Photos/image.png)
-2. make a .venv (recommended) using `python3 -m venv .venv` and activate it `source .venv/bin/activate`
-3. install the requirements. `pip install -r manual-requirements.txt`
-4. Follow our Gif.
-![Manual installation tutorial](Photos/manual_tutorial.gif)
+Choose your preferred installation method:
+
+- [Manual Installation](#manual-installation)
+- [ZIP Installation](#zip-installation)
+
+### Manual Installation
+
+1. Download `manual.zip` from the [latest release](../../releases/latest).
+2. Follow our gif.
+![Manual](Photos/manual_tutorial.gif)
+3. Create a environment (recommended) using `python3 -m venv .venv`. Then activate it using `source .venv/bin/activate`.
+4. Install the required dependencies: `pip install -r requirements.txt`.
+
+### Zip Installation
+
+1. Download `vebiora_porable.zip` from the latest release.
+2. extract the ZIP archive and activate it's environment: `source .venv/bin/activate`.
+
+## uninstallation instructions
+
+Follow the instruction based on how you installed your vebiora.
+
+- [Manual](#manual-uninstall)
+- [zip](#zip-uninstall)
+
+### Manual uninstall
+
+1. Delete `manual.zip`
+2. Delete Your Vebiora directory ex: `~/Vebiora_ai`.
+
+### Zip uninstall
+
+1. Delete `vebiora_portable.zip`.
