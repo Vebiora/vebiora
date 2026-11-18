@@ -1,4 +1,4 @@
-![Banner](Banner.png)
+![Banner](Photos/Banner.png)
 
 # Vebiora AI – An AI Agent
 
