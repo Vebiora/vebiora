@@ -27,7 +27,6 @@ logs/
 
 #folders
 tests/
-data/
 
 
 # IDEs and editors
@@ -37,7 +36,7 @@ data/
 # OS-generated files
 .DS_Store
 Thumbs.db
-__init__*
+**/__init__.py
 
 # Sensitive configuration
 data/conf/API.json

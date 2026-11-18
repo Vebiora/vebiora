@@ -12,11 +12,8 @@ from prompt_toolkit import PromptSession
 
 
 ## path builder
-def build_path():
-    logger = setup_logging(args.verbose)
-
+def build_path(logger):
     base_dir = Path(__file__).resolve().parent
-    
     setting_path = base_dir / "data" / "conf" / "settings.json" ## gets the path for the settings file
     
     try:
@@ -49,7 +46,7 @@ def build_path():
 ## commands
 switch = False ## switch for thinking cmd
 
-def build_commands(command_text: str) -> bool: ## so if False then it will count as asking the ai else no. (good for plugging)
+def build_commands(command_text: str, settings: dict) -> bool: ## so if False then it will count as asking the ai else no. (good for plugging)
 
     if not command_text.startswith("/"):
          return False
@@ -64,7 +61,7 @@ def build_commands(command_text: str) -> bool: ## so if False then it will count
 
     end_command = True ## makes it more understandable
 
-    commands = build_path()['commands'] ## gets the available commands
+    commands = settings['commands'] ## gets the available commands
     names = {command['name'] for command in commands} ## gets the name for etch command
 
     ## if command is not available returns error
@@ -135,19 +132,21 @@ def build_commands(command_text: str) -> bool: ## so if False then it will count
     
 ## main
 def main() -> None:
+
+     ## if not api provider provided then run itself.
+     if build_path(logger)['agent']['provider'] == "none":
+                      logger.warning("The provider is none, we automatically started 'change_api'.")
+                      brain.Change_api()
+
      while True:
         try:
 
-            if build_path()['agent']['provider'] == "none":
-                 logger.warning("The provider is none, we automatically started 'change_api'.")
-                 brain.Change_api()
-
-            user_input = str(session.prompt("\nYou: ")).lower().strip() ## gets user input
+            user_input = str(session.prompt("\nYou: ")).strip() ## gets user input
             
             if not user_input:
                  continue
 
-            if build_commands(user_input):
+            if build_commands(user_input, settings):
                  continue
             
             answer = brain.Ask(user_input=user_input, on_chunk=False)
@@ -181,18 +180,31 @@ brain = Brain(short_memory)
 
 ## making of main
 if __name__ == "__main__":
+    print(Path.home())
     parser = build_parser()
     args = parser.parse_args()
+
     logger = setup_logging(args.verbose)
+    settings = build_path(logger=logger)
     logger.debug("logger was created")
 
     if args.config:
             print(f"Config folder: {Path(__file__).resolve().parent / 'data' / 'conf' / 'settings.json'}")
+            raise SystemExit(0)
+    
     if args.version:
             print("Vebiora: 0.1.2")
+            raise SystemExit(0)
+    
     if args.prompt:
-            brain = Brain(short_memory=short_mem())
-            response = brain.Ask(args.prompt)
+            try:
+               brain = Brain(short_memory=short_mem())
+               response = brain.Ask(args.prompt)
+            except (RuntimeError, TimeoutError) as exc:
+                 logger.error("%s", exc)
+                 raise SystemExit(1) from exc
             print(f"VebAI: {response['answer']}")
+            raise SystemExit(0)
+    
     else:
          main()

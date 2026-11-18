@@ -121,8 +121,17 @@ class Brain:
 
     ## converts raw data in json style
     def convert_data(self, content):
-        content = content.decode('utf-8')
-        return json.loads(content.removeprefix("data: ").strip())
+        if isinstance(content, bytes):
+            content = content.decode('utf-8')
+        content = content.strip()
+
+        if content.startswith("data:"):
+            content = content.removeprefix("data: ").strip()
+
+        if content == "[DONE]":
+            return None
+        
+        return json.loads(content)
 
     ## takes a request with specific settings and act like modes
     def Ask(self, user_input, on_chunk=None):
@@ -166,11 +175,11 @@ class Brain:
                 target=thinking_animation,
                 args=(stop_animation,) )
         
-        self.short_memory.Add({"role": "user", "content": user_input}) ## ads user content so the ai will remember
         thinking_thread.start() ## starts the thinking animation
         try:
+            self.short_memory.Add({"role": "user", "content": user_input}) ## ads user content so the ai will remember
             ## makes a request with the settings of the selected mode, then returns the answer.
-            response = requests.post(
+            with requests.post(
                 self.base_url,
                 headers={
                     **({"Authorization": f"Bearer {self.api_key}"}
@@ -200,33 +209,33 @@ class Brain:
                     "extra_body": {"chat_template_kwargs": {"enable_thinking": settings["thinking"]}},
                 },
                 stream=True,
-                timeout=(3, None) ## gets an error if in 3 seconds the server doesn't respond.
-            )
+                timeout=(3, 120) ## error-free for 3 server erros. error-free between data with 2 minutes timer.
+            ) as response:
 
-            sections = []
-            reasoning_sections = []
+                sections = []
+                reasoning_sections = []
 
             
-            #response.raise_for_status() ## gets the web status
-            for content in response.iter_lines():
-                if content == b'':
-                    continue
-                if content == b'data: [DONE]':
-                    break
+                response.raise_for_status() ## gets the web status
+                for content in response.iter_lines():
+                    if content == b'':
+                        continue
+                    if content == b'data: [DONE]':
+                        break
+
+                    delta = self.convert_data(content)['choices'][0]['delta']
+                    text = delta.get('content')
+                    reasoning = delta.get('reasoning_content')
+                    
+                    # print(self.convert_data(content)) ## this is for debugging
+                    if text:
+                        sections.append(text)
+
+                    if reasoning:
+                        reasoning_sections.append(reasoning)
+
                 
-                # print(self.convert_data(content)) ## this is for debugging
-                if text := self.convert_data(content)['choices'][0]['delta'].get('content'):
-                    sections.append(text)
-
-                    if on_chunk:
-                        on_chunk(text)
-                    else:
-                        print(text, end="", flush="true")
-                if reasoning := self.convert_data(content)['choices'][0]['delta'].get('reasoning_content'):
-                    reasoning_sections.append(reasoning)
-
-
-            self.short_memory.Add({"role": "assistant", "content": "".join(sections)}) ## ads it's own content so the ai will remember what he said
+                self.short_memory.Add({"role": "assistant", "content": "".join(sections)}) ## ads it's own content so the ai will remember what he said
 
             return {
                 "answer": "".join(sections),
@@ -236,16 +245,20 @@ class Brain:
                 
             
 
-            
+        except requests.exceptions.Timeout as e:
+                    logger.error("AI request time out.")
+                    raise TimeoutError("The AI service timed out. Please try again.") from e
         
         except requests.exceptions.ConnectionError as e:
-            logger.error("Could not connect to AI endpoint (endpoint='%s'): %s", self.api_key, e)
-            raise RuntimeError("AI service is unavailable") from e
-        
-        except requests.exceptions.Timeout as e:
-            logger.error("AI endpoint timed out (endpoint='%s'): %s ", self.api_key, e)
-            sys.exit() 
+            logger.error("Could not connect to AI service (provider='%s', endpoint='%s'): %s", setting_data['agent']['provider'], self.base_url, e)
+            raise RuntimeError(f"Unable to connect to the AI service ({setting_data['agent']['provider']})."
+                               "Check internet connetion and API endpoint")
 
+        except requests.exceptions.HTTPError as e:
+            status = e.response.status_code if e.response is not None else "unknown"
+            logger.critical("AI service returned an HTTP error (provider='%s', status='%s')", setting_data['agent']['provider'], status)
+            raise RuntimeError(f"The AI service returned an HTTP error ({status}).") from e
+ 
         finally:
             stop_animation.set()
             thinking_thread.join()

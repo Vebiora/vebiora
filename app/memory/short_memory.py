@@ -52,6 +52,7 @@ class short_mem:
         
         except PermissionError:
             print(f"Error: Vebiora does not have permission to write '{full_path}'")
+            raise PermissionError("Vebiora doesn't have permissions to write.")
 
         size_kb = os.path.getsize(full_path) / 1024 ## calculates the file size.
         logger.debug("\nSaved memory in file.\n")
@@ -68,16 +69,25 @@ class short_mem:
     def load_file   (self, name):
         save_path = setting_data["app"]["memory_path"] ## gets the path of files
         file_name = str(name).strip().replace(" ", "-") ## makes sure there is no spaces
-        full_path = os.path.join(save_path, f"{name}.json") ## makes the file name
+        full_path = os.path.join(save_path, f"{file_name}.json") ## makes the file name
 
         ## if there is no file returns a error
         if not os.path.exists(full_path):
             logger.error(f"\nMemory '{file_name}' not found.")
             return False
+        
+        try:
+            with open(full_path, "r", encoding = "utf-8") as f:
+                self.memory = json.load(f)
+            logger.debug("\nLoaded memory from file.\n")
 
-        with open(full_path, "r", encoding = "utf-8") as f:
-            self.memory = json.load(f)
-        logger.debug("\nLoaded memory from file.\n")
+        except UnicodeDecodeError:
+            logger.critical("Error while trying to decode JSON file.")
+            raise
+        
+        except json.JSONDecodeError:
+            logger.critical("Invalid JSON syntax.")
+            raise
 
         print("\n[Memory:Load]" + "-" * 42)
         print("Status   : Found")
